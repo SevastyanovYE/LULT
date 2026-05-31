@@ -1,70 +1,95 @@
 Purpose: Entry point for the LevelUp Language Test repository.
 How the GPT should use this file: Use for project orientation only; do not use as the main testing rubric.
 Priority: Medium
-Last updated: 2026-05-26
+Last updated: 2026-05-31
 
 # LevelUp Language Test (LULT)
 
-LevelUp Language Test is a compact knowledge base for a Custom GPT that runs a short adaptive English diagnostic, estimates an approximate CEFR level, and returns a short or detailed learning report.
+LULT is a Custom GPT knowledge and configuration repository for a short adaptive English diagnostic. It estimates an approximate CEFR level, gives a 0-100 score, produces a report and study plan, and can optionally save a consent-based leaderboard attempt.
 
-The project is designed for GPT Knowledge: small Markdown files, clear headings, searchable labels, and a strict separation between GPT behavior instructions and reference material.
+The user interface is Russian-first. At the beginning of a new session, the GPT asks once whether the user wants Russian or English, then keeps using that interface language.
 
-All diagnostic tasks in the first question bank are original LULT items. They are not copied from IELTS, TOEFL, Cambridge English, Duolingo English Test, EF SET, or other branded exams.
+## Architecture
 
-## What To Put In Custom GPT Instructions
+Primary leaderboard architecture:
 
-Paste these files manually into the GPT Builder **Instructions** field:
+- Custom GPT for the test experience.
+- GPT Actions for API calls.
+- Supabase Edge Function as HTTPS API layer.
+- Supabase/Postgres as leaderboard storage.
+
+Google Sheets is documented only as a fallback in `docs/google_sheets_fallback.md`.
+
+## What To Put In GPT Instructions
+
+Paste:
 
 - `gpt-config/main_instructions.md`
 
-Use these while configuring the GPT:
+Use while configuring:
 
 - `gpt-config/conversation_starters.md`
+- `gpt-config/menu_flow.md`
+- `gpt-config/language_policy.md`
 - `gpt-config/gpt_builder_checklist.md`
 
-## What To Upload To Custom GPT Knowledge
+## What To Upload To Knowledge
 
-Upload these folders to **Knowledge**:
+Upload:
 
 - `knowledge/`
 - `question-bank/`
 - `research/`
 - `tests/`
 - `docs/`
+- `leaderboard/`
 
-Do not paste the full question bank into Instructions. The GPT should retrieve only the relevant items during a session.
+Do not paste the full question bank into Instructions.
 
-Most runtime retrieval should start with:
+## GPT Actions
 
-- `knowledge/00_knowledge_index.md`
+Use:
 
-Fast lookup files:
+- `actions/openapi_schema_leaderboard.yaml`
+- `actions/api_contract.md`
+- `docs/gpt_actions_setup.md`
 
-- scoring and CEFR mapping: `knowledge/02_scoring_rubric_100.md`
-- adaptation rules: `knowledge/03_adaptive_test_rules.md`
-- writing rubric: `knowledge/05_writing_assessment_rubric.md`
-- final reports: `knowledge/07_report_templates.md`
-- diagnostic limitations: `knowledge/04_language_testing_good_practice.md`
+Privacy Policy URL for OpenAI GPT Builder:
+
+`https://github.com/SevastyanovYE/LULT/blob/main/PRIVACY_POLICY.md`
+
+Raw URL:
+
+`https://raw.githubusercontent.com/SevastyanovYE/LULT/main/PRIVACY_POLICY.md`
+
+Supabase project URL:
+
+`https://tljcovuwbhoxtimhxxlw.supabase.co`
+
+Do not commit real secret keys, service role keys, database passwords, or connection strings with passwords.
+
+## Leaderboard Rules
+
+- Submission is optional and consent-based.
+- In test modes, LULT asks for consent and alias before the first diagnostic question, then saves automatically after the final report if consent was given.
+- Use alias only.
+- Do not collect full names, emails, phone numbers, age, or sensitive personal data.
+- Compare only within the same `language + mode`.
+- Store timing: `started_at`, `completed_at`, `duration_seconds`, `created_at`.
+- No `test_version` in leaderboard logic.
 
 ## Quick Start
 
-1. Open ChatGPT GPT Builder.
-2. Create a GPT named `LevelUp Language Test`.
-3. Paste `gpt-config/main_instructions.md` into Instructions.
-4. Upload all files from `knowledge/`, `question-bank/`, `research/`, `tests/`, and `docs/` to Knowledge.
-5. Add conversation starters from `gpt-config/conversation_starters.md`.
-6. Test with prompts from `tests/regression_prompts.md`.
+1. Open Supabase SQL Editor and run `actions/supabase_schema.sql`.
+2. Deploy `actions/edge-functions/hyper-api`.
+3. Turn Verify JWT off for the Supabase `hyper-api` function.
+4. Configure GPT Actions with `actions/openapi_schema_leaderboard.yaml`.
+5. Paste `gpt-config/main_instructions.md` into GPT Instructions.
+6. Upload Knowledge folders.
+7. Test with fake leaderboard data before using with real users.
+
+Important: do not upload `actions/supabase_schema.sql` through Table Editor > Import data. It is SQL, not a spreadsheet. Use SQL Editor or the migration file in `supabase/migrations/`.
 
 ## Important Limitation
 
 LULT is a diagnostic coaching tool. It is not an official CEFR exam, certificate, placement test, IELTS/TOEFL/Cambridge/Duolingo/EF SET clone, or substitute for a trained human examiner.
-
-## Human Editing Priorities
-
-Edit in this order:
-
-1. `gpt-config/main_instructions.md` for behavior.
-2. `knowledge/02_scoring_rubric_100.md` for scoring and mapping.
-3. `knowledge/03_adaptive_test_rules.md` for test flow.
-4. `knowledge/05_writing_assessment_rubric.md` and `knowledge/10_calibration_examples.md` for assessment quality.
-5. `question-bank/english/` for item coverage.

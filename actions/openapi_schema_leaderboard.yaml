@@ -1,0 +1,265 @@
+openapi: 3.1.0
+info:
+  title: LULT Leaderboard API
+  version: 0.1.0
+  description: Consent-based leaderboard and personal progress API for LevelUp Language Test.
+servers:
+  - url: https://tljcovuwbhoxtimhxxlw.supabase.co/functions/v1/hyper-api
+security:
+  - bearerAuth: []
+paths:
+  /attempts:
+    post:
+      operationId: saveAttempt
+      summary: Save a consent-based LULT test attempt.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AttemptRequest"
+      responses:
+        "200":
+          description: Attempt saved with progress comparison.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AttemptResponse"
+        "400":
+          description: Invalid request.
+        "401":
+          description: Missing or invalid API key.
+  /leaderboards:
+    get:
+      operationId: getLeaderboard
+      summary: Get a leaderboard for one tested language and mode.
+      parameters:
+        - name: language
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: mode
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 50
+            default: 10
+      responses:
+        "200":
+          description: Leaderboard entries.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LeaderboardResponse"
+        "401":
+          description: Missing or invalid API key.
+  /profiles/{alias}/progress:
+    get:
+      operationId: getProfileProgress
+      summary: Get personal progress for an alias in one language and mode.
+      parameters:
+        - name: alias
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: language
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: mode
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Personal progress.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProfileProgressResponse"
+        "401":
+          description: Missing or invalid API key.
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      description: "Use: Authorization: Bearer YOUR_LULT_ACTION_API_KEY"
+  schemas:
+    Subscores:
+      type: object
+      additionalProperties: false
+      properties:
+        vocabulary_score:
+          type: integer
+          minimum: 0
+          maximum: 100
+        grammar_score:
+          type: integer
+          minimum: 0
+          maximum: 100
+        reading_score:
+          type: integer
+          minimum: 0
+          maximum: 100
+        writing_score:
+          type: integer
+          minimum: 0
+          maximum: 100
+        speaking_score:
+          type: integer
+          minimum: 0
+          maximum: 100
+        listening_score:
+          type: integer
+          minimum: 0
+          maximum: 100
+    AttemptRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - alias
+        - language
+        - interface_language
+        - mode
+        - score
+        - cefr
+        - confidence
+      properties:
+        alias:
+          type: string
+          minLength: 2
+          maxLength: 32
+        language:
+          type: string
+        interface_language:
+          type: string
+          enum: [ru, en]
+        mode:
+          type: string
+        score:
+          type: integer
+          minimum: 0
+          maximum: 100
+        cefr:
+          type: string
+        confidence:
+          type: string
+          enum: [low, medium, high]
+        subscores:
+          $ref: "#/components/schemas/Subscores"
+        started_at:
+          type: string
+          format: date-time
+        completed_at:
+          type: string
+          format: date-time
+        duration_seconds:
+          type: integer
+          minimum: 0
+        badge:
+          type: string
+        summary:
+          type: string
+    LeaderboardEntry:
+      type: object
+      additionalProperties: false
+      properties:
+        rank:
+          type: integer
+        alias:
+          type: string
+        score:
+          type: integer
+        cefr:
+          type: string
+        badge:
+          type:
+            - string
+            - "null"
+        duration_seconds:
+          type:
+            - integer
+            - "null"
+        created_at:
+          type: string
+          format: date-time
+    AttemptResponse:
+      type: object
+      additionalProperties: false
+      properties:
+        saved:
+          type: boolean
+        current_score:
+          type: integer
+        previous_best_score:
+          type:
+            - integer
+            - "null"
+        delta:
+          type:
+            - integer
+            - "null"
+        improved:
+          type:
+            - boolean
+            - "null"
+        previous_cefr:
+          type:
+            - string
+            - "null"
+        current_cefr:
+          type: string
+        rank:
+          type:
+            - integer
+            - "null"
+        leaderboard_slice:
+          type: array
+          items:
+            $ref: "#/components/schemas/LeaderboardEntry"
+    LeaderboardResponse:
+      type: object
+      properties:
+        language:
+          type: string
+        mode:
+          type: string
+        entries:
+          type: array
+          items:
+            $ref: "#/components/schemas/LeaderboardEntry"
+    ProfileProgressResponse:
+      type: object
+      properties:
+        alias:
+          type: string
+        language:
+          type: string
+        mode:
+          type: string
+        best_score:
+          type:
+            - integer
+            - "null"
+        latest_score:
+          type:
+            - integer
+            - "null"
+        attempts_count:
+          type: integer
+        history:
+          type: array
+          items:
+            $ref: "#/components/schemas/LeaderboardEntry"

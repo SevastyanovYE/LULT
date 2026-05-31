@@ -44,3 +44,29 @@ Research layer update:
 - added official and review-level source base for CEFR, ACTFL, ALTE, EALTA, Cambridge, CAT/IRT, rating quality, speaking assessment, and AI assessment limits;
 - added compact evidence summary for future rubric improvements;
 - kept research notes separate from runtime Knowledge to avoid bloating GPT retrieval.
+
+## v0.2.0
+
+Supabase leaderboard architecture:
+
+- added Supabase/Postgres `attempts` schema with timing fields;
+- added GPT Actions API contract, OpenAPI schema, examples, and Edge Function draft;
+- added leaderboard, ranking, personal progress, and privacy rules;
+- updated GPT instructions for Russian-first UX, one-time language choice, consent-based saving, and alias-only leaderboard submissions;
+- documented Supabase setup, GPT Actions setup, architecture, and Google Sheets fallback.
+
+## v0.2.1
+
+Supabase setup fix:
+
+- clarified the primary-key issue caused by using Table Editor import on a SQL file;
+- added migration file for the `attempts` table;
+- tightened PostgreSQL schema conventions and setup docs.
+
+## v0.2.2
+
+GPT Actions endpoint fix:
+
+- switched docs and OpenAPI to the deployed Supabase function URL `functions/v1/hyper-api`;
+- added JWT troubleshooting guidance for GPT Actions;
+- clarified custom bearer API key setup.
